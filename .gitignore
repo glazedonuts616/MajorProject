@@ -1,0 +1,9 @@
+ansible-playbook\ansible_play\inventory\inventory.ini
+.venv
+ansible-playbook\ansible_play\vars\main.yml
+terraform\.terraform
+terraform\tf_ec2_ansible\.terraform
+# Ignore Terraform provider files
+.terraform/
+terraform/.terraform/
+terraform/**/.terraform/

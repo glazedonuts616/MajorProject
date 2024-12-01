@@ -1,0 +1,8 @@
+- name: geerlingguy.apache
+- name: geerlingguy.mysql
+- name: Shashkist.ansible-role-jdk-17
+- name: geerlingguy.jenkins #username: admin, password: admin
+- name: darkwizard242.eksctl
+- name: andrewrothstein.kubectl
+- name: Shashkist.install-aws-cli-on-UBUNTU-24
+  
