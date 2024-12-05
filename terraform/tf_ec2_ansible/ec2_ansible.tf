@@ -2,10 +2,10 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_instance" "jenkins_master" {
+resource "aws_instance" "jenkins-master" {
   ami           = "ami-0866a3c8686eaeeba"
   instance_type = "t2.micro"
-  id = var.jenkins_master
+  id = var.jenkins-master
   key_name      = "My-first-key"       # Replace with your key pair name
 
   provisioner "file" {
