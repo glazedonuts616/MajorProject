@@ -3,6 +3,7 @@ provider "aws" {
 }
 
 
+
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
@@ -20,7 +21,7 @@ module "vpc" {
   single_nat_gateway = true
 
 
-#   enable_vpn_gateway = true
+  enable_vpn_gateway = true
 
 
 
@@ -41,9 +42,8 @@ module "eks" {
   subnet_ids         = module.vpc.private_subnets
   control_plane_subnet_ids = module.vpc.public_subnets
   vpc_id          = module.vpc.vpc_id
-  
-
-
+  node_iam_role_name = "Ytech"
+  node_iam_role_permissions_boundary = "arn:aws:iam::aws:policy/AdministratorAccess" 
   cluster_endpoint_public_access = true
   cluster_endpoint_private_access = true
 
@@ -53,8 +53,9 @@ module "eks" {
         min_size = 2
         max_size = 3
         desired_size = 2
-        ami_type        = "ami-0453ec754f44f9a4a"
+        ami_id        = "ami-0453ec754f44f9a4a"
         instance_types = ["t3.small"]
+        key_name    = "My-first-key"
         additional_security_group_ids = aws_security_group.lb_sg.id
         
 
@@ -93,12 +94,17 @@ module "eks" {
   authentication_mode = "API_AND_CONFIG_MAP"
 }
 
-
-# Output the cluster kubeconfig
-output "kubeconfig" {
-  value = module.eks.kubeconfig
+output "node_group_id" {
+  value = module.eks.eks_managed_node_groups["terra-eks"].node_group_id
 }
 
+
+output "kubeconfig" {
+  value={
+    cluster_name = module.eks.cluster_name
+    endpoint     = module.eks.cluster_endpoint
+}
+}
 
 # Output the cluster endpoint
 output "cluster_endpoint" {
@@ -145,11 +151,11 @@ resource "aws_security_group" "lb_sg" {
 
 # Application Load Balancer
 resource "aws_lb" "lb_cluster" {
-  name               = "cluster-lb"
+  name               = "terra-cluster-lb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = aws_subnet.example_subnet.*.id
+  subnets            = module.vpc.private_subnets
 }
 
 # Target Group for Instances
@@ -157,14 +163,15 @@ resource "aws_lb_target_group" "cluster-group" {
   name     = "cluster-target-group"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = module.vpc.default_vpc_id
+  target_type = "instance"
+  vpc_id   = module.vpc.vpc_id
 }
 
 # Attach Instances to Target Group
 resource "aws_lb_target_group_attachment" "lb_group_attach" {
   count            = 3
   target_group_arn = aws_lb_target_group.cluster-group.arn
-  target_id        = my-terra-cluster.aws_instance[count.index].id
+   target_id = module.eks.eks_managed_node_groups["terra-eks"].node_group_id # Correct reference
   port             = 80
 }
 
@@ -178,4 +185,43 @@ resource "aws_lb_listener" "listen_lb" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.cluster-group.arn
   }
+}
+
+resource "local_sensitive_file" "EKS_ip" {
+  filename = "${path.module}/variables.yaml"
+
+  content = <<EOT
+---
+flask-app-eks:
+%{ for id in flatten(module.eks.eks_managed_node_groups["terra-eks"].node_group_id) }
+  - "${id}"
+%{ endfor }
+EOT
+
+  depends_on = [module.eks]
+}
+
+
+
+resource "local_sensitive_file" "EKS_inv" {
+  filename   = "/home/vagrant/Documents/Devops/Major_Project/MajorProject/terraform/tf_ec2_ansible/inventory.ini"
+  content    = <<EOT
+[web_servers]
+%{ for id in flatten(module.eks.eks_managed_node_groups["terra-eks"].node_group_id) }
+ "${id}" ansible_ssh_user=ubuntu ansible_ssh_private_key_file=/home/vagrant/.aws/My-first-key.pem
+%{ endfor }
+
+EOT
+  depends_on = [module.eks]
+}
+
+
+  resource "local_sensitive_file" "my_eip_ip" {
+   content  = <<EOT
+   %{ for ip in flatten(module.eks.eks_managed_node_groups["terra-eks"].node_group_id) }
+  - "${ip}"
+%{ endfor }
+EOT
+   filename = "${path.module}/my_eip_ip.txt"
+   depends_on = [ module.eks ]
 }

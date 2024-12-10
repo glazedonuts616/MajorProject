@@ -7,3 +7,13 @@ terraform\tf_ec2_ansible\.terraform
 .terraform/
 terraform/.terraform/
 terraform/**/.terraform/
+terraform/tf_ec2_ansible/inventory.ini
+terraform/tf_ec2_ansible/variables.yaml
+terraform/terraform.tfstate.backup
+terraform/terraform.tfstate
+terraform/terraform.lock.hcl
+terraform/eks_cluster/terraform.tfstate.backup
+terraform/eks_cluster/terraform.tfstate
+terraform/eks_cluster/.terraform.lock.hcl
+terraform/eks_cluster/plan.json
+terraform/eks_cluster/plan.tfplan
