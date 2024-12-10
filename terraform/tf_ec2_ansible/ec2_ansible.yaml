@@ -1,5 +1,5 @@
 ---
-- name: Deploy Dockerized Flask App from Docker Hub
+- name: Deploy jenkins and kubectl from Docker Hub
   hosts: "{{ jenkins_master }}"             # Uses the 'webserver' variable from vars file
   become: true
 
@@ -41,6 +41,11 @@
 - name: Setup Jenkins on Docker
   hosts: all
   become: yes
+  
+  vars_files:
+    - variables.yaml                # Load variables
+
+
   tasks:
 
     - name: Ensure user is added to the docker group
@@ -80,6 +85,7 @@
         name: jenkins/jenkins
         source: pull
 
+
     - name: Run Jenkins container
       ansible.builtin.docker_container:
         name: jenkins
@@ -88,9 +94,18 @@
           - "8080:8080"
           - "50000:50000"
         volumes:
-          - "/var/jenkins_home:/var/jenkins_home"
+          - jenkins_home:/var/jenkins_home
+# volumes:
+        #   - "/var/jenkins_home:/var/jenkins_home"
         restart_policy: always
         state: started
+
+     # Display Jenkins URL and admin password
+    - name: Display Jenkins login information
+      ansible.builtin.debug:
+        msg: >
+          Jenkins is running on http://{{ ansible_default_ipv4.address }}:8080.
+          Check the admin password using: `docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword`.
 
     - name: Add Dockers to sudo and groups
       ansible.builtin.user:
@@ -104,7 +119,96 @@
         groups: sudo,ubuntu
         append: yes
 
-                
+
+# - name: Set up tools for managing EKS
+#   hosts: "{{ web_servers }}"
+#   become: yes
+
+#   tasks:
+#     - name: Update and upgrade the system
+#       apt:
+#         update_cache: yes
+#         upgrade: dist
+
+    - name: Install prerequisites
+      apt:
+        name:
+          - curl
+          - unzip
+          - apt-transport-https
+        state: present
+
+    - name: Install AWS CLI
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -o awscliv2.zip
+        sudo ./aws/install
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Verify AWS CLI installation
+      command: aws --version
+      register: aws_cli_version
+      ignore_errors: yes
+
+    - name: Install kubectl
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+      args:
+        creates: /usr/local/bin/kubectl
+
+    - name: Verify kubectl installation
+      command: kubectl version --client
+      register: kubectl_version
+      ignore_errors: yes
+
+# - name: Install eksctl
+#   shell: |
+#     ARCH=amd64
+#     curl -s "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$(uname -s)_$ARCH.tar.gz" | tar xz
+#     sudo mv eksctl /usr/local/bin/
+#   args:
+#     creates: /usr/local/bin/eksctl
+
+#     - name: Verify eksctl installation
+#       command: eksctl version
+#       register: eksctl_version
+#       ignore_errors: yes
+
+    # - name: Configure AWS CLI credentials
+    #   copy:
+    #     dest: /home/vagrant/.aws/credentials
+    #     content:  |
+    #       [default]
+    #       aws_access_key_id = "{{aws_key_id}}"
+    #       aws_secret_access_key = "{{aws_secret_key}}"
+    #       mode: 0600
+
+    # - name: Set ownership for AWS CLI credentials
+    #   file:
+    #     path: /home/vagrant/.aws/credentials
+    #     owner: "{{ ansible_ssh_user }}"
+
+    - name: Configure AWS CLI region
+      lineinfile:
+        path: /home/vagrant/.aws/config
+        create: yes
+        line: "region = us-east-1"
+        state: present
+
+    # - name: Update kubeconfig for the cluster
+    #   shell: aws eks --region us-east-1 update-kubeconfig --name my-cluster
+    #   register: kubeconfig_status
+    #   ignore_errors: yes
+
+  handlers:
+    - name: Restart Docker (if needed)
+      service:
+        name: docker
+        state: restarted
+
 
 
   #   # Install required packages including Java 17
