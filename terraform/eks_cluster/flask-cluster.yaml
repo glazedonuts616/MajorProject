@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-contacts-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-contacts-app
+  template:
+    metadata:
+      labels:
+        app: flask-contacts-app
+    spec:
+      containers:
+      - name: flask-contacts-app
+        image: shashkist/flask-contacts-app
+        ports:
+        - containerPort: 5052
+        volumeMounts:
+        - name: app-storage
+          mountPath: /app/storage
+        envFrom:
+        - configMapRef:
+            name: flask-app-config
+        - secretRef:
+            name: flask-app-secret
+      volumes:
+      - name: app-storage
+        emptyDir:
+          sizeLimit: "1Gi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-contacts-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: flask-contacts-app
+  ports:
+  - protocol: TCP
+    port: 5052
+    targetPort: 5052

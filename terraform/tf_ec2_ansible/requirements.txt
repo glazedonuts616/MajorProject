@@ -1,0 +1,19 @@
+# Git-related dependencies
+GitPython==3.1.36         # For interacting with Git repositories programmatically
+
+# Ansible dependencies
+ansible==8.2.0            # Ansible core package
+ansible-lint==6.22.2      # Linter for Ansible playbooks
+
+# Docker-related dependencies
+docker==6.1.3             # Docker SDK for Python to interact with the Docker engine
+
+# Jenkins-related dependencies
+python-jenkins==1.8.0     # Jenkins API client for Python
+
+# Virtual environment management
+virtualenv==20.24.3       # Tool for creating isolated Python environments
+
+# Other helpful tools
+requests==2.32.3          # For making HTTP requests
+tqdm==4.66.4              # Progress bar for scripts

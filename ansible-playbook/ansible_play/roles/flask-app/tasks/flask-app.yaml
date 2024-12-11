@@ -1,0 +1,49 @@
+---
+- name: Deploy Dockerized Flask App from Docker Hub
+  hosts: "{{ webserver }}"             # Uses the 'webserver' variable from vars file
+  become: true
+
+  vars_files:
+    - ../vars/main.yml                 # Load variables
+
+  tasks:
+    - name: Ensure Python is installed
+      apt:
+        name: python3
+        state: present
+        update_cache: yes
+
+    - name: Ensure pip is installed
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Stop any process on port 5000
+      shell: "fuser -k 5000/tcp"
+      ignore_errors: true              # Ignore errors if nothing is running on port 5000
+
+    - name: Pull Flask app image from Docker Hub
+      docker_image:
+        name: "{{ docker_image_name }}" # Docker Hub image name
+        source: pull                    # Pulls image from Docker Hub
+
+    - name: Run Flask Docker container in detached mode
+      docker_container:
+        name: flask-app-container
+        image: "{{ docker_image_name }}"
+        state: started
+        detach: yes                    # Runs the container in detached mode
+        ports:
+          - "5000:5000"                # Expose port 5000

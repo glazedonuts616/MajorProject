@@ -1,0 +1,17 @@
+---
+- name: Deploy Dockerized Flask App from Docker Hub
+  hosts: aws_jenkins
+  become: true
+
+  roles:
+   - Shashkist.ansible-role-jdk-17
+   - geerlingguy.jenkins #username: admin, password: admin
+   - darkwizard242.eksctl
+   - andrewrothstein.kubectl
+   - Shashkist.install-aws-cli-on-UBUNTU-24
+
+
+
+
+
+

@@ -1,0 +1,294 @@
+---
+- name: Deploy jenkins and kubectl from Docker Hub
+  hosts: "{{ jenkins_master }}"             # Uses the 'webserver' variable from vars file
+  become: true
+
+  vars_files:
+    - variables.yaml                # Load variables
+
+  tasks:
+    - name: Ensure Python is installed
+      apt:
+        name: python3
+        state: present
+        update_cache: yes
+
+    - name: Ensure pip is installed
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Stop any process on port 5000
+      shell: "fuser -k 5000/tcp"
+      ignore_errors: true          
+      
+    - name: Stop any process on port 8080
+      shell: "fuser -k 8080/tcp"
+      ignore_errors: true
+
+- name: Setup Jenkins on Docker
+  hosts: all
+  become: yes
+  
+  vars_files:
+    - variables.yaml                # Load variables
+
+
+  tasks:
+
+    - name: Ensure user is added to the docker group
+      ansible.builtin.user:
+        name: "{{ ansible_ssh_user }}"  # Use the Ansible user variable
+        groups: docker
+        append: yes
+
+
+    - name: Stop Jenkins service if running (native installation)
+      ansible.builtin.systemd:
+        name: jenkins
+        state: stopped
+      ignore_errors: true  # Ignore if the service doesn't exist
+
+    - name: Check if port 8080 is in use
+      ansible.builtin.shell: |
+        lsof -i :8080 | grep LISTEN || true
+      register: port_8080_check
+
+    - name: Fail if port 8080 is in use
+      ansible.builtin.fail:
+        msg: "Port 8080 is in use. Please stop the conflicting service."
+      when: port_8080_check.stdout != ""
+
+    - name: Set timezone to Asia/Jerusalem
+      ansible.builtin.command: timedatectl set-timezone Asia/Jerusalem
+
+    - name: Update and upgrade apt packages
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: dist
+        cache_valid_time: 3600
+
+    - name: Pull Jenkins image from Docker Hub
+      ansible.builtin.docker_image:
+        name: jenkins/jenkins
+        source: pull
+
+
+    - name: Run Jenkins container
+      ansible.builtin.docker_container:
+        name: jenkins
+        image: jenkins/jenkins
+        ports:
+          - "8080:8080"
+          - "50000:50000"
+        volumes:
+          - jenkins_home:/var/jenkins_home
+# volumes:
+        #   - "/var/jenkins_home:/var/jenkins_home"
+        restart_policy: always
+        state: started
+
+     # Display Jenkins URL and admin password
+    - name: Display Jenkins login information
+      ansible.builtin.debug:
+        msg: >
+          Jenkins is running on http://{{ ansible_default_ipv4.address }}:8080.
+          Check the admin password using: `docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword`.
+
+    - name: Add Dockers to sudo and groups
+      ansible.builtin.user:
+        name: docker
+        groups: sudo,ubuntu
+        append: yes
+
+    - name: Add Jenkins to sudo and groups
+      ansible.builtin.user:
+        name: jenkins
+        groups: sudo,ubuntu
+        append: yes
+
+
+# - name: Set up tools for managing EKS
+#   hosts: "{{ web_servers }}"
+#   become: yes
+
+#   tasks:
+#     - name: Update and upgrade the system
+#       apt:
+#         update_cache: yes
+#         upgrade: dist
+
+    - name: Install prerequisites
+      apt:
+        name:
+          - curl
+          - unzip
+          - apt-transport-https
+        state: present
+
+    - name: Install AWS CLI
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -o awscliv2.zip
+        sudo ./aws/install
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Verify AWS CLI installation
+      command: aws --version
+      register: aws_cli_version
+      ignore_errors: yes
+
+    - name: Install kubectl
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+      args:
+        creates: /usr/local/bin/kubectl
+
+    - name: Verify kubectl installation
+      command: kubectl version --client
+      register: kubectl_version
+      ignore_errors: yes
+
+# - name: Install eksctl
+#   shell: |
+#     ARCH=amd64
+#     curl -s "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$(uname -s)_$ARCH.tar.gz" | tar xz
+#     sudo mv eksctl /usr/local/bin/
+#   args:
+#     creates: /usr/local/bin/eksctl
+
+#     - name: Verify eksctl installation
+#       command: eksctl version
+#       register: eksctl_version
+#       ignore_errors: yes
+
+    # - name: Configure AWS CLI credentials
+    #   copy:
+    #     dest: /home/vagrant/.aws/credentials
+    #     content:  |
+    #       [default]
+    #       aws_access_key_id = "{{aws_key_id}}"
+    #       aws_secret_access_key = "{{aws_secret_key}}"
+    #       mode: 0600
+
+    # - name: Set ownership for AWS CLI credentials
+    #   file:
+    #     path: /home/vagrant/.aws/credentials
+    #     owner: "{{ ansible_ssh_user }}"
+
+    - name: Configure AWS CLI region
+      lineinfile:
+        path: /home/vagrant/.aws/config
+        create: yes
+        line: "region = us-east-1"
+        state: present
+
+    # - name: Update kubeconfig for the cluster
+    #   shell: aws eks --region us-east-1 update-kubeconfig --name my-cluster
+    #   register: kubeconfig_status
+    #   ignore_errors: yes
+
+  handlers:
+    - name: Restart Docker (if needed)
+      service:
+        name: docker
+        state: restarted
+
+
+
+  #   # Install required packages including Java 17
+  #   - name: Install Java 17 and other dependencies
+  #     apt:
+  #       name:
+  #         - fontconfig
+  #         - git
+  #         - openjdk-17-jre
+  #       state: present
+
+  #   # Verify Java installation
+  #   - name: Verify Java installation
+  #     ansible.builtin.command: java -version
+  #     register: java_version_output
+  #     ignore_errors: yes
+
+  #   # Download and configure Jenkins repository key
+  #   - name: Download Jenkins key
+  #     ansible.builtin.get_url:
+  #       url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+  #       dest: /usr/share/keyrings/jenkins-keyring.asc
+
+  #   - name: Add Jenkins repository
+  #     ansible.builtin.shell: |
+  #       echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" > /etc/apt/sources.list.d/jenkins.list
+  #     args:
+  #       creates: /etc/apt/sources.list.d/jenkins.list
+
+  #   # Update apt cache after adding Jenkins repository
+  #   - name: Update apt cache
+  #     apt:
+  #       update_cache: yes
+
+  #   # Install Jenkins
+  #   - name: Install Jenkins
+  #     apt:
+  #       name: jenkins
+  #       state: present
+
+  #   # Add Jenkins to sudoers group
+  #   - name: Allow Jenkins user to run sudo without password
+  #     ansible.builtin.lineinfile:
+  #       path: /etc/sudoers
+  #       regexp: '^jenkins ALL=\(ALL\) NOPASSWD: ALL$'
+  #       line: 'jenkins ALL=(ALL) NOPASSWD: ALL'
+  #       state: present
+
+  #   - name: Add Jenkins to sudo and vagrant groups
+  #     ansible.builtin.user:
+  #       name: jenkins
+  #       groups: sudo,ubuntu
+  #       append: yes
+
+  #   # Start Jenkins service
+  #   - name: Start Jenkins service
+  #     ansible.builtin.systemd:
+  #       name: jenkins
+  #       state: started
+
+  #   # Enable Jenkins service
+  #   - name: Enable Jenkins service on boot
+  #     ansible.builtin.systemd:
+  #       name: jenkins
+  #       enabled: yes
+
+  #   # Copy initial admin password
+  #   - name: Copy initial admin password to root directory
+  #     ansible.builtin.command: cp /var/lib/jenkins/secrets/initialAdminPassword /root/
+  #     ignore_errors: yes
+
+  #   # Display admin credentials
+  #   - name: Display admin credentials
+  #     ansible.builtin.shell: |
+  #       echo "Username: admin"
+  #       echo "Password: $(cat /var/lib/jenkins/secrets/initialAdminPassword)"
+  #     register: jenkins_credentials
+  #     ignore_errors: yes
+
+  # post_tasks:
+  #   - debug:
+  #       msg: "{{ jenkins_credentials.stdout }}"
+  #  #

@@ -1,0 +1,21 @@
+ansible-playbook\ansible_play\inventory\inventory.ini
+.venv
+ansible-playbook\ansible_play\vars\main.yml
+terraform\.terraform
+terraform\tf_ec2_ansible\.terraform
+# Ignore Terraform provider files
+.terraform/
+terraform/.terraform/
+terraform/**/.terraform/
+terraform/tf_ec2_ansible/inventory.ini
+terraform/tf_ec2_ansible/variables.yaml
+terraform/terraform.tfstate.backup
+terraform/terraform.tfstate
+terraform/terraform.lock.hcl
+terraform/eks_cluster/terraform.tfstate.backup
+terraform/eks_cluster/terraform.tfstate
+terraform/eks_cluster/.terraform.lock.hcl
+terraform/eks_cluster/plan.json
+terraform/eks_cluster/plan.tfplan
+terraform/tf_ec2_ansible/awscliv2.zip
+terraform/tf_ec2_ansible/aws
