@@ -173,13 +173,24 @@ resource "aws_security_group" "allow_port_8080_and_22" {
   }
 }
 resource "local_sensitive_file" "EC2_ip" {
-  filename   = "/home/vagrant/Documents/Devops/Major_Project/MajorProject/terraform/tf_ec2_ansible/variables.yaml"
+  filename   = "${path.module}/variables.yaml"
   content    = <<EOT
 ---
 jenkins_master: "${aws_eip.my_eip.public_ip}"
 EOT
   depends_on = [aws_instance.jenkins-master]
 }
+
+
+resource "local_sensitive_file" "EC2_ip" {
+  filename   = "/home/vagrant/Documents/Devops/Major_Project/MajorProject/terraform/eks_cluster/variables.yaml"
+  content    = <<EOT
+---
+jenkins_master: "${aws_eip.my_eip.public_ip}"
+EOT
+  depends_on = [aws_instance.jenkins-master]
+}
+
 
 
 resource "local_sensitive_file" "EC2_inv" {
@@ -195,6 +206,6 @@ EOT
 
   resource "local_sensitive_file" "my_eip_ip" {
    content  = aws_eip.my_eip.public_ip
-   filename = "${path.module}/my_eip_ip.txt"
+   filename = "${path.module}/../flask_cluster_app_mongo/my_eip_ip.txt"
    depends_on = [ aws_instance.jenkins-master ]
 }

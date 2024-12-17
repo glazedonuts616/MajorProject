@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-contacts-app
+  labels:
+    app: flask-contacts-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-contacts-app
+  template:
+    metadata:
+      labels:
+        app: flask-contacts-app
+    spec:
+      containers:
+      - name: flask-contacts-app
+        image: shashkist/flask-contacts-app:1.7
+        ports:
+        - containerPort: 5052
+        env:
+        - name: DATABASE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: flask-mysql-config
+              key: db_type
+        - name: MONGO_URI
+          valueFrom:
+            configMapKeyRef:
+              name: flask-mysql-config
+              key: mongo_url
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flask-mysql-config
+data:
+  db_url: "mysql-service"
+  db_host: "localhost"
+  db_user: "root"
+  db_type: "MONGO"
+  db_name: "contacts_app"
+  mongo_url: "mongodb://mongo-service:27017"
+  mongodb_host: "mongo-service"
+  db_port: "27017"
+  my.cnf: | # This is the configuration file for MySQL
+    [mysqld]
+    transaction-isolation = READ-COMMITTED
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-contacts-app-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # Use "nlb" or "classic"
+    service.beta.kubernetes.io/aws-load-balancer-eip-allocations: "eipalloc-07f3049bc06305eba"
+spec:
+  selector:
+    app: flask-contacts-app
+  type: LoadBalancer  
+  ports:
+    - protocol: TCP
+      port: 5052
+      targetPort: 5052
+      nodePort: 30001        
+

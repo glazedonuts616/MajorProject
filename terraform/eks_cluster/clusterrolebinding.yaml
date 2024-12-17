@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: your-iam-role-binding
+subjects:
+  - kind: User  # Or 'ServiceAccount' or 'Group' based on your principal
+    name: arn:aws:iam::047719660371:role/my-terra-cluster-cluster-20241214204958566900000001  # Your IAM role ARN
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin  # Give admin access
+  apiGroup: rbac.authorization.k8s.io

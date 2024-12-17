@@ -1,0 +1,34 @@
+# apiVersion: v1
+# data:
+#   mapRoles: |
+#     - groups:
+#       - system:bootstrappers
+#       - system:nodes
+#        rolearn: arn:aws:iam::047719660371:role/terra-eks-eks-node-group-20241214205936230600000013
+#       username: system:node:{{EC2PrivateDNSName}}
+#     - groups:
+#       - system:masters  # Add this line for admin access
+#       rolearn: arn:aws:iam::047719660371:user/Admin  # Replace with your IAM role
+#       username: admin
+# kind: ConfigMap
+# metadata:
+#   name: aws-auth
+#   namespace: kube-system
+
+
+apiVersion: v1
+data:
+  mapUsers: |
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      userarn: arn:aws:iam::047719660371:root
+      username: system:node:{{EC2PrivateDNSName}}
+    - groups:
+      - system:masters  # Add this line for admin access
+      userarn: arn:aws:iam::047719660371:root  # Replace with your IAM user ARN
+      username: root
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
