@@ -155,11 +155,11 @@ resource "local_sensitive_file" "lb_id" {
 ---
 eks_clstr_id: "${aws_eip.lb_eip_1.id}"
 EOT
-  depends_on = [aws_security_group.lb_eip_1]
+  depends_on = [aws_eip.lb_eip_1]
 }
 
   resource "local_sensitive_file" "my_lb_ip" {
    content  = aws_eip.lb_eip_1.public_ip
    filename = "${path.module}/my_eip_ip.txt"
-    depends_on = [aws_security_group.lb_eip_1]
+    depends_on = [aws_eip.lb_eip_1]
 }

@@ -55,7 +55,7 @@ metadata:
   name: flask-contacts-app-service
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # Use "nlb" or "classic"
-    service.beta.kubernetes.io/aws-load-balancer-eip-allocations: "eipalloc-07f3049bc06305eba"
+    service.beta.kubernetes.io/aws-load-balancer-eip-allocations: "{}"
 spec:
   selector:
     app: flask-contacts-app

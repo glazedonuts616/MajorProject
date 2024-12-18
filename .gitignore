@@ -14,6 +14,7 @@ terraform/terraform.lock.hcl
 terraform/eks_cluster/terraform.tfstate.backup
 terraform/eks_cluster/terraform.tfstate
 terraform/eks_cluster/.terraform.lock.hcl
+terraform/eks_cluster/.terraform.tfstate.lock.info
 terraform/eks_cluster/plan.json
 terraform/eks_cluster/plan.tfplan
 terraform/eks_cluster/.terraform
