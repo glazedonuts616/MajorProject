@@ -3,16 +3,16 @@ kind: Deployment
 metadata:
   name: flask-contacts-app
   labels:
-    app: shared-app
+    app: flask-contacts-app
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: shared-app
+      app: flask-contacts-app
   template:
     metadata:
       labels:
-        app: shared-app
+        app: flask-contacts-app
     spec:
       containers:
       - name: flask-contacts-app
@@ -47,24 +47,3 @@ data:
   my.cnf: | # This is the configuration file for MySQL
     [mysqld]
     transaction-isolation = READ-COMMITTED
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: shared-loadbalancer-service
-spec:
-  selector:
-    app: shared-app  # Ensure your pods use this shared label
-  type: LoadBalancer
-  ports:
-    - name: flask-contacts
-      protocol: TCP
-      port: 5052      # Load Balancer listens here
-      targetPort: 5052  # Container port in Flask Contacts
-      nodePort: 30001  # Node port for Flask Contacts
-    - name: mongo-express
-      protocol: TCP
-      port: 8081      # Load Balancer listens here
-      targetPort: 8081  # Container port in Mongo Express
-      nodePort: 30002  # Node port for Mongo Express

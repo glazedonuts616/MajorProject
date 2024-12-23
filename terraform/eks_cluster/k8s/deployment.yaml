@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-contacts-app
+  labels:
+    app: shared-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: shared-app
+  template:
+    metadata:
+      labels:
+        app: shared-app
+    spec:
+      containers:
+      - name: flask-contacts-app
+        image: shashkist/flask-contacts-app:1.7
+        ports:
+        - containerPort: 5052
+        env:
+        - name: DATABASE_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: flask-mysql-config
+              key: db_type
+        - name: MONGO_URI
+          valueFrom:
+            configMapKeyRef:
+              name: flask-mysql-config
+              key: mongo_url
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:4.4.6
+        ports:
+        - containerPort: 27017
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  labels:
+    app: shared-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shared-app
+  template:
+    metadata:
+      labels:
+        app: shared-app
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: flask-mysql-config
+              key: mongodb_host
+        

@@ -19,8 +19,11 @@ terraform/eks_cluster/plan.json
 terraform/eks_cluster/plan.tfplan
 terraform/eks_cluster/.terraform
 terraform/eks_cluster/tf_formbackups
+terraform/eks_cluster/variables.yaml
+terraform/eks_cluster/my_eip_ip.txt
 terraform/tf_ec2_ansible/awscliv2.zip
 terraform/tf_ec2_ansible/aws
 terraform/eks_cluster/tf_form_backups/*
 ansible-playbook/ansible_play/inventory/inventory.ini
 terraform/.terraform.lock.hcl
+terraform/eks_cluster/flask_cluster_app_mongo/.env
