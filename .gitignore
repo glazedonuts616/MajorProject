@@ -27,3 +27,5 @@ terraform/eks_cluster/tf_form_backups/*
 ansible-playbook/ansible_play/inventory/inventory.ini
 terraform/.terraform.lock.hcl
 terraform/eks_cluster/flask_cluster_app_mongo/.env
+terraform/eks_cluster/variables.tf
+terraform/eks_cluster/terraform.tfvars
