@@ -101,6 +101,22 @@ module "eks" {
   authentication_mode = "API_AND_CONFIG_MAP"
 }
 
+# resource "kubernetes_config_map" "aws_auth" {
+#   metadata {
+#     name      = "aws-auth"
+#     namespace = "kube-system"
+#   }
+
+#   data = {
+#     mapUsers = <<EOT
+# - userarn: ${var.user_arn}
+#   username: ${var.username}
+#   groups:
+#     - system:masters
+# EOT
+#   }
+# }
+
 
 # # Output the cluster kubeconfig
 # output "kubeconfig" {
