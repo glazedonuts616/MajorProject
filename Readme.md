@@ -1,65 +1,137 @@
-1- Run terraform to start first cloud computer with jenkins already on it.
-2- Ansible to install the required programs[ python, pip,] on the ec2.
-3: Terraform for eks, and elb
-4. Ansible, credentials, and pipeline for the flask-app to run on the eks
-5. Push to github of files.
-6. Webhook for github
-7. Test one by one.
-8.Checking WEBHOOK!!
+# CI/CD for Flask Contact App in Kubernetes Cluster
 
+This guide provides instructions for setting up a CI/CD pipeline for deploying a Flask Contact App in a Kubernetes cluster with a Load Balancer.
 
-CI/CD For Flask Contact App in Kubernetes cluster, with a Load Balancer
+---
 
-Instructions:
+## Prerequisites
 
-1- Download the following apps:
-a-aws cli
-b-dockers
-c-terraform
-d-kubectl
-e-ansible
-f-helm
-h-git
-g-all the required programs in order to run those apps.
+### Required Tools
+Ensure the following applications are installed on your system:
 
-2- Clone the github repository: "https://github.com/glazedonuts616/MajorProject.git"
+- **AWS CLI**
+- **Docker**
+- **Terraform**
+- **kubectl**
+- **Ansible**
+- **Helm**
+- **Git**
+- Other dependencies required to run the above tools
 
-3- Add Private Key Credential from Aws to the computer running the repository, and place it in the .aws folder
+### Repository
+Clone the GitHub repository:
+```bash
+https://github.com/glazedonuts616/MajorProject.git
+```
 
+---
 
-4- Attach to the awscli with your credentials
+## Setup Instructions
 
-5- Change the key name in the aws_instance, to the same name of your aws-key file, which you have placed in .aws folder.
+### 1. AWS Configuration
+- Add your AWS private key credentials to the `.aws` folder on your machine.
+- Configure AWS CLI with your credentials:
+```bash
+aws configure
+```
 
-6- Move to the folder "MajorProject/terraform/" and run terraform init, plan, apply.
+### 2. Update AWS Key Name
+Modify the `aws_instance` key name in the Terraform configuration to match the name of your AWS key file.
 
-7- Move to the folder "MajorProject/terraform/tf_ec2_ansible/" make sure you update the inventory.ini file is updated with the location of your aws key,
-and then run "ansible-playbook -i inventory.ini ec2_ansible.yaml"
+---
 
-8- Connect to your new ec2 with ssh -i "path-to-your-key" ubunto@"Your-EIP-address"
+## Steps to Deploy
 
-9- Go in to the docker logs of Jenkins, copy the password
+### Step 1: Terraform Setup
+1. Navigate to the Terraform directory:
+   ```bash
+   cd MajorProject/terraform/
+   ```
+2. Initialize and apply Terraform configurations:
+   ```bash
+   terraform init
+   terraform plan
+   terraform apply
+   ```
 
-10- Enter the IP Address of your EIP in the url of your browser,  connect through port 8080, and place the jenkins admin password.
+### Step 2: Ansible Configuration
+1. Navigate to the Ansible directory:
+   ```bash
+   cd MajorProject/terraform/tf_ec2_ansible/
+   ```
+2. Update `inventory.ini` with the location of your AWS key file.
+3. Run the Ansible playbook:
+   ```bash
+   ansible-playbook -i inventory.ini ec2_ansible.yaml
+   ```
 
-11- Once in Jenkins, install the following plugins.
-a- EKS token
-b- EC2
-c- git
-d- Kubernetes
-e- Pipeline: groovy, Pipeline - grid view
-f- Amazon Web services
+### Step 3: Connect to EC2
+- SSH into your newly created EC2 instance:
+  ```bash
+  ssh -i "path-to-your-key" ubuntu@Your-EIP-Address
+  ```
 
-12- Add the neccasary credentials:
-a- 	EKS Token Credentials
-b- AWS Credentials
-c- github
-d-  github webhook
+### Step 4: Jenkins Setup
+1. Access Docker logs to retrieve the Jenkins admin password:
+   ```bash
+   docker logs jenkins-container-name
+   ```
+2. Open Jenkins in your browser using the EC2 IP address and port 8080:
+   ```
+   http://Your-EIP-Address:8080
+   ```
+3. Enter the admin password and install the following plugins:
+   - EKS Token
+   - EC2
+   - Git
+   - Kubernetes
+   - Pipeline (Groovy and Grid View)
+   - Amazon Web Services
 
-12- move to the folder "MajorProject/terraform/eks_cluster" and run terraform init, terrafor plan, apply
+4. Add necessary credentials in Jenkins:
+   - **EKS Token Credentials**
+   - **AWS Credentials**
+   - **GitHub Credentials**
+   - **GitHub Webhook Credentials**
 
-13- make sure the printers are up to date, with a connection to the server.
+### Step 5: Deploy Kubernetes Cluster
+1. Navigate to the EKS Terraform configuration:
+   ```bash
+   cd MajorProject/terraform/eks_cluster/
+   ```
+2. Initialize and apply the configuration:
+   ```bash
+   terraform init
+   terraform plan
+   terraform apply
+   ```
 
-13- Navigate back to jenkins, which is in the ec2 we created originally, with the eip address. Enter web interface in url.
+---
 
-14- Fill in the box to synchronize printer from github webhook.
+## Final Steps
+
+### Jenkins Pipeline Configuration
+1. Access Jenkins at the EC2 instance IP (port 8080).
+2. Add the `Jenkinsfile` to your pipeline configuration.
+3. Update the `Jenkinsfile` with the correct Kubernetes cluster endpoint URL.
+4. Configure the pipeline to synchronize with the GitHub repository via webhook.
+5. Build the pipeline in Jenkins.
+
+### Application Access
+- Flask Contact App: `http://LoadBalancer-DNS-Name:5052`
+- MongoDB: `http://LoadBalancer-DNS-Name:8081`
+
+### Verification
+- Confirm GitHub and Jenkins webhook integration.
+- Verify successful pipeline execution and deployment.
+
+---
+
+## Notes
+- Ensure printers are up to date and connected to the server (if applicable).
+- Use the DNS name provided by the Load Balancer to access the services.
+
+---
+
+**It's been real!**  
+**Yoni**

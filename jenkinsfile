@@ -53,13 +53,9 @@ pipeline
         stage('Deploy to EKS') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'kubectl-eks-credentials', variable: 'kubectl-cred')]) {
-    // some block
-    kubeconfig(credentialsId: 'kubectl-eks-credentials2', serverUrl: 'https://EA659BCAD43F406DAACE30E91A621903.gr7.us-east-1.eks.amazonaws.com') {
+                 
+     kubeconfig(credentialsId: 'kubectl-eks-credentials2', serverUrl: 'https://4C5B2212D870BEA782627431DD86B595.gr7.us-east-1.eks.amazonaws.com') {
                     
-                        // some block
-    //                 withKubeConfig(caCertificate: 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJVjUxQVhKbTJZY2t3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TkRFeU1qa3lNREUzTWpaYUZ3MHpOREV5TWpjeU1ESXlNalphTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUURHYjluamhmL3JubnlkcE1jbEZ3ekduempaRTVmRUwyZ1BMVzBYSGg2QkRqNEwzNVh4VFExa1ZSU0cKRHlwaHl0ZkFWOHd4UDFHOFVVdjNhY044aUdTWlN6TkJYM2F2VjRJV1BGQlgxTmxJeGxTcWZrZ3NWekgrVm1IbgpoVDFRQ0VVNWNLLzFmVmFOWWJEQWlTUEJ6ejRlRXAwSFRyTVVmbWtQL2lFaXdzYWN2L09mTHRhZHlDcy9Fakd2CnUvNDlrK1B4bHNIdmo5TWVHRjlVY2Fha3VMT1ZjM2hmL3NPaGNELytaOW5lOUxRa2wzQ1RVaVo0cUJNNXZzbVUKY0h3WC8zckI5RXVMN1R4RmRYUkNjTzNQcHVOOE41MWg5c2M4cGhJSEhGSVVNcXJyY1FLa0JKWHQyVFJkaWJaZwp3S0NHemJlcWwvanFmRXJhUUtVUHdxN0ZQNG1oQWdNQkFBR2pXVEJYTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJSVnQzUG9nSWtUUndGOWcwdFZJWUZaKzJlMHZUQVYKQmdOVkhSRUVEakFNZ2dwcmRXSmxjbTVsZEdWek1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQ0xJNWRpbDR6cgpQanVod3NyNTRvUzB5eFZ5OWdYN09hbU5GZ3RYYTJjM0lXanVpYk5PSWRVTFkvUFpOamZ3b0RJK3lwQVQ2OVBZCk5DT2s5bkdUK256WXZqUzBIN2tDdXYyaXJWWCs4V2FLRy9naVdtbHY4SW1wWkhQZDJkSmRoT3Z6MmNYZzVVSEYKNWsyeTlHeUZRR29qSU1RNTdJMnkwM29id2lxMVNUQ3dWaWtWMHZOQnAxZTRpNkhjbUN4eTdNaytWUk03cTRGOQpNTmcxYWh2WSt3elF2aWVTT1VFTVl2NUV4RGFKa0ZkTzlUajNyRXdZc1J0TytseHNrMGN0NjNPRHgvQmR4RWJ4CnJnUzNWdDVFOW1MQUpXWEJhb3NySGZFbTVCR3NUcE1VWlRDQ2E5SUJPNklNU29RRG9sb0s5L0dvWWgyT3h6NGoKY0JtRlBWdVBrTXNnCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K', clusterName: 'my-terra-cluster', contextName: '', credentialsId: 'my-cluster', namespace: '', restrictKubeConfigAccess: false, serverUrl: 'https://0DA1E5A2D560AE0CB66D50D4D5987493.gr7.us-east-1.eks.amazonaws.com') {
-    // // some block
     sh "kubectl config view"
     sh "kubectl cluster-info"
 
@@ -69,7 +65,7 @@ pipeline
                     sh "kubectl apply -f terraform/eks_cluster/k8s/service.yaml --v=8"
                     
                     }
-                }
+               
             }
             }
         }
