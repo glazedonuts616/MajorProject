@@ -182,7 +182,7 @@ EOT
 }
 
 
-resource "local_sensitive_file" "EC2_ip" {
+resource "local_sensitive_file" "EC2_ip_for_var" {
   filename   = "/home/vagrant/Documents/Devops/Major_Project/MajorProject/terraform/eks_cluster/variables.yaml"
   content    = <<EOT
 ---
